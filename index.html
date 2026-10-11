@@ -1,0 +1,2608 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PeakRank - Anime Tier & Ranked List</title>
+    <meta name="description" content="PeakRank - Mobile-first multi-list ranked anime manager with AniList Discovery Battles, Elo sorting, custom tags, and local persistence." />
+    <meta property="og:title" content="PeakRank - Anime Tier & Ranked List" />
+    <meta property="og:description" content="PeakRank - Mobile-first multi-list ranked anime manager with AniList Discovery Battles, Elo sorting, custom tags, and local persistence." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              zinc: {
+                950: '#09090b',
+                900: '#18181b',
+                850: '#202024',
+                800: '#27272a',
+                750: '#323238',
+                700: '#3f3f46',
+                600: '#52525b',
+                400: '#a1a1aa',
+                300: '#d4d4d8',
+                100: '#f4f4f5'
+              }
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(8px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              popIn: {
+                '0%': { opacity: '0', transform: 'scale(0.96)' },
+                '100%': { opacity: '1', transform: 'scale(1)' }
+              },
+              goldPulse: {
+                '0%, 100%': { boxShadow: '0 0 16px -2px rgba(234, 179, 8, 0.25)' },
+                '50%': { boxShadow: '0 0 24px 2px rgba(234, 179, 8, 0.4)' }
+              }
+            },
+            animation: {
+              fadeInUp: 'fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              popIn: 'popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              goldGlow: 'goldPulse 3s ease-in-out infinite'
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      html, body {
+        background-color: #09090b;
+        color: #f4f4f5;
+        -webkit-tap-highlight-color: transparent;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #18181b;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #3f3f46;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #52525b;
+      }
+      .card-item {
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-zinc-800">
+
+    <!-- Sticky Navigation Bar -->
+    <!-- Sticky Navigation Bar -->
+    <header class="sticky top-0 z-30 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/80 px-2 sm:px-4 py-2">
+      <div class="max-w-md mx-auto flex items-center justify-between gap-1.5 sm:gap-2">
+        <!-- Logo / Return to Homepage -->
+        <button
+          id="navHomeBtn"
+          type="button"
+          class="flex items-center gap-1.5 group text-left focus:outline-none shrink-0"
+          title="Return to PeakRank Homepage"
+        >
+          <div class="w-7 h-7 rounded-lg bg-zinc-850 border border-amber-500/40 flex items-center justify-center text-xs font-black text-amber-400 shadow-inner group-hover:border-amber-400 group-hover:scale-105 transition-all">
+            ▲
+          </div>
+          <span class="text-xs sm:text-sm font-bold tracking-tight text-zinc-100 group-hover:text-amber-400 transition-colors">
+            PeakRank
+          </span>
+        </button>
+
+        <!-- View Switcher Tabs -->
+        <div class="flex items-center p-0.5 bg-zinc-900 border border-zinc-800 rounded-lg shrink-0">
+          <button
+            id="tabHomeBtn"
+            type="button"
+            class="px-2 py-0.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1 bg-zinc-800 text-zinc-100 shadow-sm"
+          >
+            Lists
+          </button>
+          <button
+            id="tabRankingBtn"
+            type="button"
+            class="px-2 py-0.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition-all flex items-center gap-1"
+          >
+            Rank
+          </button>
+        </div>
+
+        <!-- Export & Import Buttons -->
+        <div class="flex items-center gap-1 shrink-0">
+          <!-- Export Button -->
+          <button
+            id="exportBtn"
+            type="button"
+            class="h-7 sm:h-8 px-2 text-xs font-semibold rounded-lg border border-zinc-700/80 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white active:scale-95 transition-all shadow-sm flex items-center gap-1 shrink-0"
+            title="Export active list to JSON"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            <span>Export</span>
+          </button>
+
+          <!-- Import Button -->
+          <button
+            id="importBtn"
+            type="button"
+            class="h-7 sm:h-8 px-2 text-xs font-semibold rounded-lg border border-zinc-700/80 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white active:scale-95 transition-all shadow-sm flex items-center gap-1 shrink-0"
+            title="Import JSON as a new list"
+          >
+            <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Import</span>
+          </button>
+          <input type="file" id="importInput" accept=".json,application/json" class="hidden" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-md mx-auto px-4 py-3 flex-1 flex flex-col">
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: HOMEPAGE (All Anime Files / Lists) -->
+      <!-- ========================================== -->
+      <section id="homeView" class="flex flex-col gap-3.5 animate-fadeInUp">
+        <div class="flex items-center justify-between pb-1 border-b border-zinc-800/80">
+          <div>
+            <h2 class="text-sm font-bold text-zinc-100 flex items-center gap-1.5">
+              <span>My Anime Lists</span>
+              <span id="homeListCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">0</span>
+            </h2>
+            <p class="text-[11px] text-zinc-500">Manage and switch between your personal tier files</p>
+          </div>
+          <!-- Create New List Button -->
+          <button
+            id="homeCreateListBtn"
+            type="button"
+            class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md hover:shadow-amber-500/20 active:scale-95 transition-all"
+          >
+            <span>+</span> New List
+          </button>
+        </div>
+
+        <!-- Prominent Large Discovery Battle CTA Banner on Homepage -->
+        <button
+          id="homeBannerMatchupBtn"
+          type="button"
+          class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-zinc-950 font-black text-sm flex items-center justify-between shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:scale-[1.01] active:scale-98 transition-all group select-none cursor-pointer"
+        >
+          <div class="flex items-center gap-2.5 text-left min-w-0">
+            <span class="w-10 h-10 rounded-xl bg-zinc-950/20 border border-zinc-950/20 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform shrink-0">
+              ⚔️
+            </span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-black leading-tight tracking-tight">Discovery Matchup Battle</span>
+                <span class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 bg-zinc-950 text-amber-400 rounded-md shrink-0">AniList Elo</span>
+              </div>
+              <p class="text-[11px] font-semibold text-zinc-900/80 leading-tight mt-0.5 truncate">
+                Head-to-head battles & discover new anime directly from AniList
+              </p>
+            </div>
+          </div>
+          <span class="w-8 h-8 rounded-xl bg-zinc-950/15 flex items-center justify-center text-sm font-black group-hover:translate-x-1 transition-transform shrink-0 ml-1">
+            →
+          </span>
+        </button>
+
+        <!-- Lists Grid -->
+        <div id="homeListsContainer" class="flex flex-col gap-2.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: RANKING EDITOR (Active List View)  -->
+      <!-- ========================================== -->
+      <section id="rankingView" class="hidden flex-col gap-3 animate-fadeInUp">
+
+        <!-- Top List Control Strip -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between gap-2 shadow-sm">
+          <div class="flex items-center gap-2 min-w-0">
+            <button
+              id="backToHomeBtn"
+              type="button"
+              class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center text-xs shrink-0 active:scale-90 transition"
+              title="Back to all lists"
+            >
+              ←
+            </button>
+            <div class="min-w-0">
+              <h2 id="activeRankingTitle" class="text-xs font-bold text-zinc-100 truncate flex items-center gap-1.5">
+                <!-- Title -->
+              </h2>
+              <span id="activeRankingCount" class="text-[11px] font-mono text-zinc-500">0 anime</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Quick Matchup Mode Button -->
+            <button
+              id="rankingMatchupBtn"
+              type="button"
+              class="min-h-[34px] px-3 py-1 text-xs font-black rounded-lg bg-gradient-to-r from-amber-500/35 to-amber-600/25 border border-amber-500/70 text-amber-300 hover:text-zinc-950 hover:bg-amber-400 active:scale-95 transition flex items-center gap-1.5 shadow-md"
+              title="Launch Elo Matchup Discovery Battle"
+            >
+              <span>⚔️</span>
+              <span>Battle</span>
+            </button>
+
+            <!-- Rename Button [ ✏️ ] -->
+            <button
+              id="rankingRenameBtn"
+              type="button"
+              class="min-w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/80 active:scale-95 transition text-xs"
+              title="Rename this ranking file"
+            >
+              ✏️
+            </button>
+
+            <!-- Delete Entire File Button [ 🗑️ ] -->
+            <button
+              id="rankingDeleteBtn"
+              type="button"
+              class="min-w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-rose-950/60 text-zinc-400 hover:text-rose-400 border border-zinc-700/80 hover:border-rose-800 active:scale-95 transition text-xs"
+              title="Delete this entire ranking file"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+
+        <!-- Prominent Large Discovery Battle CTA Banner -->
+        <button
+          id="bannerMatchupBtn"
+          type="button"
+          class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-zinc-950 font-black text-sm flex items-center justify-between shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:scale-[1.01] active:scale-98 transition-all group select-none cursor-pointer"
+        >
+          <div class="flex items-center gap-2.5 text-left min-w-0">
+            <span class="w-10 h-10 rounded-xl bg-zinc-950/20 border border-zinc-950/20 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform shrink-0">
+              ⚔️
+            </span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-black leading-tight tracking-tight">Discovery Matchup Battle</span>
+                <span class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 bg-zinc-950 text-amber-400 rounded-md shrink-0">AniList Elo</span>
+              </div>
+              <p class="text-[11px] font-semibold text-zinc-900/80 leading-tight mt-0.5 truncate">
+                Head-to-head battles & discover new anime directly from AniList
+              </p>
+            </div>
+          </div>
+          <span class="w-8 h-8 rounded-xl bg-zinc-950/15 flex items-center justify-center text-sm font-black group-hover:translate-x-1 transition-transform shrink-0 ml-1">
+            →
+          </span>
+        </button>
+
+        <!-- Search & Fallback Section -->
+        <section class="flex flex-col gap-2">
+          <!-- AniList Search Bar -->
+          <div class="relative w-full">
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 pointer-events-none text-zinc-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </span>
+              <input
+                id="searchInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Search AniList anime (e.g. Frieren, Solo Leveling)..."
+                class="w-full pl-10 pr-9 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-500/60 focus:border-amber-500/60 transition shadow-inner"
+              />
+              <button
+                id="clearSearchBtn"
+                type="button"
+                class="hidden absolute right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition text-xs"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Floating Search Dropdown -->
+            <div
+              id="searchResults"
+              class="hidden absolute top-full left-0 right-0 mt-1.5 z-40 max-h-80 overflow-y-auto bg-zinc-900/98 backdrop-blur-md border border-zinc-800 rounded-xl shadow-2xl divide-y divide-zinc-800/80 animate-popIn"
+            >
+            </div>
+          </div>
+
+          <!-- Manual Add Fallback Form -->
+          <form id="manualAddForm" class="flex items-center gap-2">
+            <input
+              id="manualInput"
+              type="text"
+              placeholder="Manual custom title (OVA, Web Novel, etc.)..."
+              class="flex-1 min-w-0 px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-500/60 focus:border-amber-500/60 transition shadow-inner"
+            />
+            <button
+              id="manualAddBtn"
+              type="submit"
+              class="shrink-0 min-h-[38px] px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-semibold rounded-xl border border-zinc-700 active:scale-95 transition-all shadow-sm whitespace-nowrap"
+            >
+              + Add
+            </button>
+          </form>
+        </section>
+
+        <!-- Ranked List Container -->
+        <div id="rankedList" class="space-y-2.5 mt-1">
+          <!-- Injected via JavaScript -->
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-center text-zinc-500">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-3 text-zinc-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-zinc-300">This list has no anime yet</p>
+          <p class="text-xs text-zinc-500 mt-1 max-w-[240px]">Search above, add manually, or start Matchup Battle to discover top anime.</p>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- CUSTOM IN-UI MODALS                        -->
+    <!-- ========================================== -->
+
+    <!-- Modal 0: ADD ANIME WITH RANK SELECTION MODAL -->
+    <div id="addAnimeModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+          <h3 class="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+            <span class="text-amber-400">★</span> Choose Ranking Position
+          </h3>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+
+        <!-- Anime Preview Info -->
+        <div class="flex items-center gap-3 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800">
+          <img
+            id="addAnimePreviewCover"
+            src=""
+            alt=""
+            referrerpolicy="no-referrer"
+            onerror="handleCoverError(this)"
+            class="w-10 h-14 rounded-lg object-cover bg-zinc-850 shrink-0 border border-zinc-700/80"
+          />
+          <div class="min-w-0 flex-1">
+            <h4 id="addAnimePreviewTitle" class="text-xs font-bold text-zinc-100 truncate"></h4>
+            <p id="addAnimePreviewScore" class="text-[11px] text-zinc-400 mt-0.5"></p>
+            <p id="addAnimeCurrentCountText" class="text-[10px] text-zinc-500 mt-0.5 font-mono"></p>
+          </div>
+        </div>
+
+        <!-- Placement Options -->
+        <div class="flex flex-col gap-2">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Placement Position</span>
+
+          <div class="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              id="addPlacementTopBtn"
+              class="add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-300 border-zinc-800 bg-zinc-850 hover:bg-zinc-800 active:scale-95 transition flex flex-col items-center"
+            >
+              <span class="text-amber-400 text-xs">▲ Top</span>
+              <span class="text-[10px] text-zinc-500 mt-0.5">Rank #1</span>
+            </button>
+
+            <button
+              type="button"
+              id="addPlacementBottomBtn"
+              class="add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-300 border-zinc-800 bg-zinc-850 hover:bg-zinc-800 active:scale-95 transition flex flex-col items-center"
+            >
+              <span class="text-zinc-300 text-xs">▼ Bottom</span>
+              <span id="addPlacementBottomLabel" class="text-[10px] text-zinc-500 mt-0.5">Rank #last</span>
+            </button>
+
+            <button
+              type="button"
+              id="addPlacementCustomBtn"
+              class="add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-950 border-amber-500 bg-amber-500 shadow-md active:scale-95 transition flex flex-col items-center"
+            >
+              <span class="text-xs font-bold text-zinc-950"># Custom</span>
+              <span class="text-[10px] text-zinc-900 mt-0.5 font-bold">Your Choice</span>
+            </button>
+          </div>
+
+          <div id="addAnimeCustomInputWrapper" class="flex flex-col gap-1 mt-1 p-2.5 bg-zinc-950/80 rounded-xl border border-amber-500/30">
+            <label for="addAnimeCustomRankInput" class="text-[11px] font-medium text-zinc-300 flex items-center justify-between">
+              <span>Type Desired Rank Number:</span>
+              <span class="text-[10px] text-amber-400 font-mono" id="addAnimeRangeHint">1 - 1</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-sm font-mono font-bold pl-1">#</span>
+              <input
+                id="addAnimeCustomRankInput"
+                type="number"
+                min="1"
+                class="flex-1 min-w-0 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm font-mono font-bold text-zinc-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+            <p class="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+              Tip: If you enter a number higher than your list count, it automatically places it at the lowest rank.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-1 border-t border-zinc-800">
+          <button type="button" class="modal-close px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+            Cancel
+          </button>
+          <button
+            id="confirmAddAnimeBtn"
+            type="button"
+            class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl shadow active:scale-95 transition flex items-center gap-1.5"
+          >
+            <span>+</span> Add to Ranking
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: THREE-DOT CARD OPTIONS MODAL -->
+    <div id="cardMenuModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+          <div class="min-w-0 pr-2">
+            <h3 id="cardMenuAnimeTitle" class="text-xs font-bold text-zinc-100 truncate">Anime Title</h3>
+            <p id="cardMenuCurrentRankText" class="text-[11px] text-amber-400 font-mono mt-0.5">Current Rank: #1</p>
+          </div>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+
+        <div class="flex flex-col gap-2 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Move to Another Rank</span>
+          
+          <div class="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              id="cardMenuMoveTopBtn"
+              class="py-1.5 px-2 bg-zinc-850 hover:bg-zinc-800 text-amber-400 text-xs font-bold rounded-lg border border-zinc-700/80 active:scale-95 transition flex items-center justify-center gap-1"
+            >
+              ▲ Move to Top (#1)
+            </button>
+            <button
+              type="button"
+              id="cardMenuMoveBottomBtn"
+              class="py-1.5 px-2 bg-zinc-850 hover:bg-zinc-800 text-zinc-200 text-xs font-bold rounded-lg border border-zinc-700/80 active:scale-95 transition flex items-center justify-center gap-1"
+            >
+              ▼ Move to Bottom
+            </button>
+          </div>
+
+          <form id="cardMenuCustomMoveForm" class="flex items-center gap-2 mt-1">
+            <div class="flex items-center gap-1 flex-1 min-w-0 bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1">
+              <span class="text-xs font-mono font-bold text-zinc-400">#</span>
+              <input
+                id="cardMenuCustomRankInput"
+                type="number"
+                min="1"
+                placeholder="Rank number..."
+                class="w-full bg-transparent text-xs font-mono font-bold text-zinc-100 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-lg active:scale-95 transition shrink-0"
+            >
+              Move
+            </button>
+          </form>
+          <p class="text-[10px] text-zinc-500 leading-tight">
+            * Entering a number higher than total anime puts it automatically at the lowest rank.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <button
+            type="button"
+            id="cardMenuManageTagsBtn"
+            class="w-full py-2 px-3 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700/80 active:scale-95 transition flex items-center justify-between"
+          >
+            <span class="flex items-center gap-2"><span>🏷️</span> Custom Tags</span>
+            <span class="text-zinc-500 text-xs">→</span>
+          </button>
+
+          <button
+            type="button"
+            id="cardMenuDeleteAnimeBtn"
+            class="w-full py-2 px-3 bg-zinc-850 hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 text-xs font-semibold rounded-xl border border-zinc-800 hover:border-rose-900 active:scale-95 transition flex items-center justify-between"
+          >
+            <span class="flex items-center gap-2"><span>✕</span> Remove from List</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 1: Create List Modal -->
+    <div id="createListModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-1.5">
+            <span class="text-amber-400">+</span> Create New Ranking File
+          </h3>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+        <input
+          id="newListNameInput"
+          type="text"
+          placeholder="List Name (e.g. Shounen Classics, 2026 Tier)..."
+          class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-500/70"
+        />
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" class="modal-close px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+            Cancel
+          </button>
+          <button
+            id="confirmCreateListBtn"
+            type="button"
+            class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl shadow active:scale-95 transition"
+          >
+            Create List
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Rename List Modal -->
+    <div id="renameListModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-1.5">
+            <span>✏️</span> Rename Ranking File
+          </h3>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+        <input
+          id="renameListNameInput"
+          type="text"
+          placeholder="New list name..."
+          class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-700 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-500/70"
+        />
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" class="modal-close px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+            Cancel
+          </button>
+          <button
+            id="confirmRenameListBtn"
+            type="button"
+            class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl shadow active:scale-95 transition"
+          >
+            Save Name
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 3: Delete List Modal -->
+    <div id="deleteListModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-rose-400 flex items-center gap-1.5">
+            <span>🗑️</span> Delete Ranking File?
+          </h3>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+        <p id="deleteListModalDesc" class="text-xs text-zinc-400 leading-relaxed">
+          Are you sure you want to delete this list? All ranked anime inside will be lost.
+        </p>
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" class="modal-close px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200">
+            Cancel
+          </button>
+          <button
+            id="confirmDeleteListBtn"
+            type="button"
+            class="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow active:scale-95 transition"
+          >
+            Yes, Delete File
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 4: Tag Manager & Community Presets Modal -->
+    <div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl animate-popIn flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+          <div class="min-w-0 pr-2">
+            <h3 class="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+              <span>🏷️</span> Custom Tags
+            </h3>
+            <p id="tagModalAnimeTitle" class="text-[11px] text-amber-400 truncate mt-0.5 font-medium">Anime Title</p>
+          </div>
+          <button type="button" class="modal-close text-zinc-400 hover:text-zinc-200 text-sm">✕</button>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">Assigned Tags</span>
+          <div id="tagModalCurrentTags" class="flex flex-wrap gap-1.5 min-h-[30px] p-2 bg-zinc-950 rounded-xl border border-zinc-800/80">
+          </div>
+        </div>
+
+        <form id="tagModalCustomForm" class="flex items-center gap-2">
+          <input
+            id="tagModalCustomInput"
+            type="text"
+            placeholder="Type any custom tag..."
+            class="flex-1 min-w-0 px-3 py-1.5 bg-zinc-950 border border-zinc-700 rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          />
+          <button
+            type="submit"
+            class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-xl active:scale-95 transition shrink-0"
+          >
+            + Add
+          </button>
+        </form>
+
+        <div>
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">Popular Community Tags (Tap to Add)</span>
+          <div id="tagModalPresets" class="flex flex-wrap gap-1.5">
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1 border-t border-zinc-800">
+          <button type="button" class="modal-close px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- Modal 6: FULL-SCREEN ADVANCED DISCOVERY BATTLE MODAL     -->
+    <!-- ======================================================== -->
+    <div id="matchupModal" class="hidden fixed inset-0 z-50 bg-zinc-950/98 backdrop-blur-md flex flex-col p-3 sm:p-5 animate-popIn overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="max-w-2xl w-full mx-auto flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0 gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-base shadow-inner shrink-0">⚔️</span>
+          <div class="min-w-0">
+            <h3 class="text-sm sm:text-base font-extrabold text-zinc-100 truncate flex items-center gap-1.5">
+              <span>Discovery Battle</span>
+            </h3>
+            <p class="text-[11px] text-zinc-400 truncate">AniList Discovery & Elo Sorter</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="matchupRoundBadge" class="text-xs font-mono font-bold text-amber-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full shadow-inner">
+            Round #1
+          </span>
+          <span id="matchupDiscoveryCountBadge" class="text-xs font-mono font-bold text-emerald-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full shadow-inner">
+            ✨ 0 Added
+          </span>
+          <button
+            id="matchupHeaderCloseBtn"
+            type="button"
+            class="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 flex items-center justify-center text-sm active:scale-90 transition"
+            title="Close Matchup"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Battle Arena -->
+      <div class="max-w-2xl w-full mx-auto flex-1 flex flex-col justify-between items-center py-3 gap-3 min-h-0">
+        <!-- Subheader prompt -->
+        <div class="text-center shrink-0">
+          <p class="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-400 flex items-center justify-center gap-2">
+            <span>⚔️</span> Which anime is better? <span>⚔️</span>
+          </p>
+          <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+            Tap a card to vote. Discovered winners are automatically added to your list!
+          </p>
+        </div>
+
+        <!-- 2 Battle Cards Container with clean VS badge between them -->
+        <div class="w-full flex-1 min-h-0 relative flex flex-row items-stretch justify-center gap-3 sm:gap-6 my-auto">
+          <!-- Card A -->
+          <button
+            id="matchupCardA"
+            type="button"
+            class="flex-1 min-w-0 p-3 sm:p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-amber-400 active:scale-98 transition-all flex flex-col items-center justify-between text-center group shadow-xl relative cursor-pointer hover:bg-zinc-850"
+          >
+            <!-- Origin Badge -->
+            <div class="w-full flex justify-center mb-1 shrink-0">
+              <span id="matchupSourceA" class="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                Your List
+              </span>
+            </div>
+
+            <!-- Image Cover -->
+            <div class="relative w-full flex justify-center shrink-0 my-1">
+              <img
+                id="matchupCoverA"
+                src=""
+                alt=""
+                referrerpolicy="no-referrer"
+                onerror="handleCoverError(this)"
+                class="w-24 xs:w-28 sm:w-36 h-36 xs:h-40 sm:h-52 rounded-xl object-cover bg-zinc-850 border border-zinc-700/80 shadow-md group-hover:scale-105 group-hover:border-amber-400/50 transition-all duration-200"
+              />
+            </div>
+
+            <!-- Anime Info (Title, Score, Elo) -->
+            <div class="w-full flex-1 flex flex-col items-center justify-center my-1.5 min-w-0">
+              <h4
+                id="matchupTitleA"
+                class="text-xs sm:text-sm md:text-base font-extrabold text-zinc-100 text-center line-clamp-2 leading-snug w-full px-1 break-words group-hover:text-amber-400 transition-colors"
+                title=""
+              >
+                Anime Title
+              </h4>
+              <div class="flex flex-wrap items-center justify-center gap-1.5 mt-1.5 text-[11px] sm:text-xs font-mono">
+                <span class="text-emerald-400 font-bold bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 shadow-sm" id="matchupScoreA">
+                  Score: 82%
+                </span>
+                <span class="text-amber-400 font-bold bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 shadow-sm" id="matchupEloA">
+                  Elo: 1200
+                </span>
+              </div>
+            </div>
+
+            <!-- Vote Button -->
+            <div
+              id="matchupVoteBtnA"
+              class="w-full py-2.5 px-2 bg-zinc-800 group-hover:bg-amber-400 text-zinc-100 group-hover:text-zinc-950 text-xs sm:text-sm font-bold rounded-xl transition-all shadow shrink-0 text-center select-none"
+            >
+              Vote This ▲
+            </div>
+          </button>
+
+          <!-- Centered VS Badge (sits in the gap, perfectly visible and does NOT obscure the title) -->
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center justify-center">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-zinc-950 border-2 border-amber-500 text-amber-400 font-black text-xs sm:text-sm flex items-center justify-center shadow-2xl shadow-amber-500/20">
+              VS
+            </div>
+          </div>
+
+          <!-- Card B -->
+          <button
+            id="matchupCardB"
+            type="button"
+            class="flex-1 min-w-0 p-3 sm:p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-amber-400 active:scale-98 transition-all flex flex-col items-center justify-between text-center group shadow-xl relative cursor-pointer hover:bg-zinc-850"
+          >
+            <!-- Origin Badge -->
+            <div class="w-full flex justify-center mb-1 shrink-0">
+              <span id="matchupSourceB" class="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                ✨ AniList Discovery
+              </span>
+            </div>
+
+            <!-- Image Cover -->
+            <div class="relative w-full flex justify-center shrink-0 my-1">
+              <img
+                id="matchupCoverB"
+                src=""
+                alt=""
+                referrerpolicy="no-referrer"
+                onerror="handleCoverError(this)"
+                class="w-24 xs:w-28 sm:w-36 h-36 xs:h-40 sm:h-52 rounded-xl object-cover bg-zinc-850 border border-zinc-700/80 shadow-md group-hover:scale-105 group-hover:border-amber-400/50 transition-all duration-200"
+              />
+            </div>
+
+            <!-- Anime Info (Title, Score, Elo) -->
+            <div class="w-full flex-1 flex flex-col items-center justify-center my-1.5 min-w-0">
+              <h4
+                id="matchupTitleB"
+                class="text-xs sm:text-sm md:text-base font-extrabold text-zinc-100 text-center line-clamp-2 leading-snug w-full px-1 break-words group-hover:text-amber-400 transition-colors"
+                title=""
+              >
+                Anime Title
+              </h4>
+              <div class="flex flex-wrap items-center justify-center gap-1.5 mt-1.5 text-[11px] sm:text-xs font-mono">
+                <span class="text-emerald-400 font-bold bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 shadow-sm" id="matchupScoreB">
+                  Score: 79%
+                </span>
+                <span class="text-amber-400 font-bold bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 shadow-sm" id="matchupEloB">
+                  Elo: 1200
+                </span>
+              </div>
+            </div>
+
+            <!-- Vote Button -->
+            <div
+              id="matchupVoteBtnB"
+              class="w-full py-2.5 px-2 bg-zinc-800 group-hover:bg-amber-400 text-zinc-100 group-hover:text-zinc-950 text-xs sm:text-sm font-bold rounded-xl transition-all shadow shrink-0 text-center select-none"
+            >
+              Vote & Add to List ▲
+            </div>
+          </button>
+        </div>
+
+        <!-- Queue Status Pill -->
+        <div class="flex items-center justify-center w-full shrink-0">
+          <span id="matchupQueueStatus" class="text-[11px] text-zinc-400 font-mono px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 shadow-inner">
+            Queue: Ready
+          </span>
+        </div>
+
+        <!-- Prominent Large Bottom Action Controls: Cancel, Skip, Done -->
+        <div class="w-full max-w-xl mx-auto pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2.5 sm:gap-4 shrink-0">
+          <!-- Cancel Button: Large & Clearly Visible -->
+          <button
+            id="matchupCancelBtn"
+            type="button"
+            class="flex-1 min-h-[46px] py-3 px-3 sm:px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/80 rounded-xl text-xs sm:text-sm font-bold active:scale-95 transition flex items-center justify-center gap-1.5 shadow"
+            title="Cancel matchup mode"
+          >
+            <span class="text-rose-400 text-sm font-bold">✕</span>
+            <span>Cancel</span>
+          </button>
+
+          <!-- Skip Button: Large & Clearly Visible -->
+          <button
+            id="matchupSkipBtn"
+            type="button"
+            class="flex-1 min-h-[46px] py-3 px-3 sm:px-4 bg-zinc-850 hover:bg-zinc-750 text-zinc-200 hover:text-amber-300 border border-zinc-700 rounded-xl text-xs sm:text-sm font-bold active:scale-95 transition flex items-center justify-center gap-1.5 shadow"
+            title="Skip this battle pair"
+          >
+            <span class="text-sm">⏭️</span>
+            <span>Skip Pair</span>
+          </button>
+
+          <!-- Done Button: Large & Bold -->
+          <button
+            id="matchupDoneBtn"
+            type="button"
+            class="flex-1 min-h-[46px] py-3 px-4 sm:px-5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-zinc-950 font-black rounded-xl text-xs sm:text-sm active:scale-95 transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/25"
+            title="Save rankings and exit"
+          >
+            <span class="text-sm">💾</span>
+            <span>Done / Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Floating Feedback Toast -->
+    <div
+      id="toast"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 translate-y-3 px-3.5 py-2 rounded-xl bg-zinc-800/98 border border-zinc-700 text-xs font-medium text-zinc-100 shadow-2xl backdrop-blur-md flex items-center gap-2 max-w-[90vw] text-center"
+    >
+      <span id="toastMessage">Notification</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+      (function () {
+        'use strict';
+
+        const STORAGE_KEY = 'my-anime-ranking-data';
+        const FALLBACK_PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="128" viewBox="0 0 96 128" fill="%2318181b"><rect width="96" height="128" rx="8" fill="%2327272a"/><path d="M48 52a12 12 0 100-24 12 12 0 000 24zm-22 42c0-12 10-22 22-22s22 10 22 22H26z" fill="%2352525b"/></svg>';
+
+        // Popular community anime tags
+        const POPULAR_TAGS = [
+          'Peak Fiction', 'Masterpiece', 'Transmigration', 'Isekai',
+          'OP Protagonist', 'Dark Fantasy', 'Shounen Hype', 'Psychological',
+          'Tearjerker', 'Slice of Life', 'Must Watch', 'Top Animation',
+          'Underrated', 'Plot Twists', 'Romance', 'Comedy Gold',
+          'World Building', 'Anti-Hero', 'Time Travel', 'Supernatural'
+        ];
+
+        // Default initial items with default Elo 1200
+        const DEFAULT_INITIAL_ITEMS = [
+          {
+            id: 'init-eminence-in-shadow',
+            title: 'The Eminence in Shadow',
+            coverImage: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx130298-vY0B5oPcvNfO.jpg',
+            averageScore: 82,
+            elo: 1200,
+            tags: ['Isekai', 'Peak Fiction']
+          },
+          {
+            id: 'init-bleach',
+            title: 'Bleach',
+            coverImage: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx269-KpxWc5y0bW4V.png',
+            averageScore: 79,
+            elo: 1200,
+            tags: ['Shounen', 'Classic']
+          }
+        ];
+
+        // Multi-List State
+        let currentView = 'home'; // 'home' | 'ranking'
+        let appState = {
+          activeListId: 'list_1',
+          lists: {
+            'list_1': {
+              name: 'My Ranking',
+              items: [...DEFAULT_INITIAL_ITEMS]
+            }
+          }
+        };
+
+        // Advanced Discovery Battle Queue State
+        let apiQueue = [];
+        let isFetchingApiQueue = false;
+        let apiRateLimitedUntil = 0;
+        let sessionDiscoveredCount = 0;
+        let matchupRound = 1;
+        let matchupAnimeA = null;
+        let matchupAnimeB = null;
+
+        // Pending Item to be added via Add Modal
+        let pendingItemToAdd = null;
+        let selectedAddPlacementMode = 'custom'; // 'top' | 'bottom' | 'custom'
+
+        // Context trackers for modals
+        let targetListIdForAction = null;
+        let activeTagModalIndex = null;
+        let activeCardMenuIndex = null;
+
+        let debounceTimer = null;
+        let activeAbortController = null;
+        let toastTimeout = null;
+
+        // DOM References
+        const tabHomeBtn = document.getElementById('tabHomeBtn');
+        const tabRankingBtn = document.getElementById('tabRankingBtn');
+        const navMatchupBtn = document.getElementById('navMatchupBtn');
+        const navHomeBtn = document.getElementById('navHomeBtn');
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
+        const homeView = document.getElementById('homeView');
+        const homeBannerMatchupBtn = document.getElementById('homeBannerMatchupBtn');
+        const rankingView = document.getElementById('rankingView');
+        const homeListsContainer = document.getElementById('homeListsContainer');
+        const homeListCountBadge = document.getElementById('homeListCountBadge');
+        const homeCreateListBtn = document.getElementById('homeCreateListBtn');
+        const homeImportBtn = document.getElementById('homeImportBtn');
+
+        const activeRankingTitle = document.getElementById('activeRankingTitle');
+        const activeRankingCount = document.getElementById('activeRankingCount');
+        const bannerMatchupBtn = document.getElementById('bannerMatchupBtn');
+        const rankingMatchupBtn = document.getElementById('rankingMatchupBtn');
+        const rankingRenameBtn = document.getElementById('rankingRenameBtn');
+        const rankingDeleteBtn = document.getElementById('rankingDeleteBtn');
+
+        const searchInput = document.getElementById('searchInput');
+        const searchResultsEl = document.getElementById('searchResults');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const manualAddForm = document.getElementById('manualAddForm');
+        const manualInput = document.getElementById('manualInput');
+        const rankedListEl = document.getElementById('rankedList');
+        const emptyStateEl = document.getElementById('emptyState');
+
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importInput = document.getElementById('importInput');
+        const toastEl = document.getElementById('toast');
+        const toastMessageEl = document.getElementById('toastMessage');
+
+        // Modal Elements
+        const addAnimeModal = document.getElementById('addAnimeModal');
+        const addAnimePreviewCover = document.getElementById('addAnimePreviewCover');
+        const addAnimePreviewTitle = document.getElementById('addAnimePreviewTitle');
+        const addAnimePreviewScore = document.getElementById('addAnimePreviewScore');
+        const addAnimeCurrentCountText = document.getElementById('addAnimeCurrentCountText');
+        const addPlacementTopBtn = document.getElementById('addPlacementTopBtn');
+        const addPlacementBottomBtn = document.getElementById('addPlacementBottomBtn');
+        const addPlacementCustomBtn = document.getElementById('addPlacementCustomBtn');
+        const addPlacementBottomLabel = document.getElementById('addPlacementBottomLabel');
+        const addAnimeCustomInputWrapper = document.getElementById('addAnimeCustomInputWrapper');
+        const addAnimeCustomRankInput = document.getElementById('addAnimeCustomRankInput');
+        const addAnimeRangeHint = document.getElementById('addAnimeRangeHint');
+        const confirmAddAnimeBtn = document.getElementById('confirmAddAnimeBtn');
+
+        const cardMenuModal = document.getElementById('cardMenuModal');
+        const cardMenuAnimeTitle = document.getElementById('cardMenuAnimeTitle');
+        const cardMenuCurrentRankText = document.getElementById('cardMenuCurrentRankText');
+        const cardMenuMoveTopBtn = document.getElementById('cardMenuMoveTopBtn');
+        const cardMenuMoveBottomBtn = document.getElementById('cardMenuMoveBottomBtn');
+        const cardMenuCustomMoveForm = document.getElementById('cardMenuCustomMoveForm');
+        const cardMenuCustomRankInput = document.getElementById('cardMenuCustomRankInput');
+        const cardMenuManageTagsBtn = document.getElementById('cardMenuManageTagsBtn');
+        const cardMenuDeleteAnimeBtn = document.getElementById('cardMenuDeleteAnimeBtn');
+
+        const createListModal = document.getElementById('createListModal');
+        const newListNameInput = document.getElementById('newListNameInput');
+        const confirmCreateListBtn = document.getElementById('confirmCreateListBtn');
+
+        const renameListModal = document.getElementById('renameListModal');
+        const renameListNameInput = document.getElementById('renameListNameInput');
+        const confirmRenameListBtn = document.getElementById('confirmRenameListBtn');
+
+        const deleteListModal = document.getElementById('deleteListModal');
+        const deleteListModalDesc = document.getElementById('deleteListModalDesc');
+        const confirmDeleteListBtn = document.getElementById('confirmDeleteListBtn');
+
+        const tagModal = document.getElementById('tagModal');
+        const tagModalAnimeTitle = document.getElementById('tagModalAnimeTitle');
+        const tagModalCurrentTags = document.getElementById('tagModalCurrentTags');
+        const tagModalCustomForm = document.getElementById('tagModalCustomForm');
+        const tagModalCustomInput = document.getElementById('tagModalCustomInput');
+        const tagModalPresets = document.getElementById('tagModalPresets');
+
+        // Matchup Discovery Battle Elements
+        const matchupModal = document.getElementById('matchupModal');
+        const matchupRoundBadge = document.getElementById('matchupRoundBadge');
+        const matchupDiscoveryCountBadge = document.getElementById('matchupDiscoveryCountBadge');
+        const matchupDoneBtn = document.getElementById('matchupDoneBtn');
+        const matchupCardA = document.getElementById('matchupCardA');
+        const matchupCoverA = document.getElementById('matchupCoverA');
+        const matchupTitleA = document.getElementById('matchupTitleA');
+        const matchupScoreA = document.getElementById('matchupScoreA');
+        const matchupEloA = document.getElementById('matchupEloA');
+        const matchupSourceA = document.getElementById('matchupSourceA');
+        const matchupVoteBtnA = document.getElementById('matchupVoteBtnA');
+
+        const matchupCardB = document.getElementById('matchupCardB');
+        const matchupCoverB = document.getElementById('matchupCoverB');
+        const matchupTitleB = document.getElementById('matchupTitleB');
+        const matchupScoreB = document.getElementById('matchupScoreB');
+        const matchupEloB = document.getElementById('matchupEloB');
+        const matchupSourceB = document.getElementById('matchupSourceB');
+        const matchupVoteBtnB = document.getElementById('matchupVoteBtnB');
+
+        const matchupSkipBtn = document.getElementById('matchupSkipBtn');
+        const matchupCancelBtn = document.getElementById('matchupCancelBtn');
+        const matchupHeaderCloseBtn = document.getElementById('matchupHeaderCloseBtn');
+        const matchupQueueStatus = document.getElementById('matchupQueueStatus');
+
+        // Escape HTML helper
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        // Image fallback handler
+        window.handleCoverError = function (img) {
+          if (img.dataset.fallbackApplied) return;
+          img.dataset.fallbackApplied = 'true';
+          img.src = FALLBACK_PLACEHOLDER;
+        };
+
+        // Toast feedback
+        function showToast(message) {
+          if (toastTimeout) clearTimeout(toastTimeout);
+          toastMessageEl.textContent = message;
+          toastEl.classList.remove('opacity-0', 'translate-y-3');
+          toastEl.classList.add('opacity-100', 'translate-y-0');
+          toastTimeout = setTimeout(function () {
+            toastEl.classList.remove('opacity-100', 'translate-y-0');
+            toastEl.classList.add('opacity-0', 'translate-y-3');
+          }, 2400);
+        }
+
+        // Modal open/close helpers
+        function openModal(modal) {
+          modal.classList.remove('hidden');
+        }
+        function closeModal(modal) {
+          modal.classList.add('hidden');
+        }
+
+        document.querySelectorAll('.modal-close').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            [addAnimeModal, cardMenuModal, createListModal, renameListModal, deleteListModal, tagModal].forEach(closeModal);
+          });
+        });
+
+        // Get currently active list
+        function getActiveList() {
+          const listKeys = Object.keys(appState.lists);
+          if (listKeys.length === 0) {
+            appState.lists = {
+              'list_1': { name: 'My Ranking', items: [...DEFAULT_INITIAL_ITEMS] }
+            };
+            appState.activeListId = 'list_1';
+          }
+          if (!appState.lists[appState.activeListId]) {
+            appState.activeListId = listKeys[0];
+          }
+          const active = appState.lists[appState.activeListId];
+          if (!Array.isArray(active.items)) {
+            active.items = [];
+          }
+          return active;
+        }
+
+        // Helper: Check if anime is in active local list
+        function isAnimeInLocalList(anime) {
+          if (!anime) return false;
+          const currentList = getActiveList();
+          return currentList.items.some(function (it) {
+            if (anime.anilistId && it.anilistId && it.anilistId === anime.anilistId) return true;
+            if (it.id === anime.id) return true;
+            if (it.title && anime.title && it.title.toLowerCase().trim() === anime.title.toLowerCase().trim()) return true;
+            return false;
+          });
+        }
+
+        // Storage Load & Migration
+        function loadFromStorage() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              saveToStorage();
+              return;
+            }
+            const parsed = JSON.parse(raw);
+
+            // Backward compatibility with legacy array format
+            if (Array.isArray(parsed)) {
+              const migrated = parsed.map(function (item, idx) {
+                return {
+                  id: item.id || `migrated-${idx}-${Date.now()}`,
+                  title: String(item.title || 'Untitled Anime'),
+                  coverImage: item.coverImage || FALLBACK_PLACEHOLDER,
+                  averageScore: item.averageScore !== undefined ? item.averageScore : 'N/A',
+                  elo: typeof item.elo === 'number' && !isNaN(item.elo) ? item.elo : 1200,
+                  tags: Array.isArray(item.tags) ? item.tags : []
+                };
+              });
+              appState = {
+                activeListId: 'list_1',
+                lists: {
+                  'list_1': { name: 'My Ranking', items: migrated }
+                }
+              };
+              saveToStorage();
+              return;
+            }
+
+            if (parsed && typeof parsed === 'object' && parsed.lists) {
+              appState = parsed;
+              Object.keys(appState.lists).forEach(function (k) {
+                const l = appState.lists[k];
+                if (!Array.isArray(l.items)) l.items = [];
+                l.items = l.items.map(function (it, i) {
+                  return {
+                    id: it.id || `it-${k}-${i}`,
+                    title: String(it.title || 'Untitled Anime'),
+                    coverImage: it.coverImage || FALLBACK_PLACEHOLDER,
+                    averageScore: it.averageScore !== undefined ? it.averageScore : 'N/A',
+                    elo: typeof it.elo === 'number' && !isNaN(it.elo) ? it.elo : 1200,
+                    tags: Array.isArray(it.tags) ? it.tags : [],
+                    anilistId: it.anilistId || undefined
+                  };
+                });
+              });
+              if (!appState.activeListId || !appState.lists[appState.activeListId]) {
+                appState.activeListId = Object.keys(appState.lists)[0] || 'list_1';
+              }
+            } else {
+              saveToStorage();
+            }
+          } catch (e) {
+            console.error('Storage error:', e);
+            saveToStorage();
+          }
+        }
+
+        function saveToStorage() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+          } catch (e) {
+            console.error('Save failed:', e);
+            showToast('Warning: Storage save failed');
+          }
+        }
+
+        // View switching
+        function switchView(view) {
+          currentView = view;
+          if (view === 'home') {
+            homeView.classList.remove('hidden');
+            rankingView.classList.add('hidden');
+            tabHomeBtn.className = 'px-2 py-0.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1 bg-zinc-800 text-zinc-100 shadow-sm';
+            tabRankingBtn.className = 'px-2 py-0.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition-all flex items-center gap-1';
+            renderHomeLists();
+          } else {
+            homeView.classList.add('hidden');
+            rankingView.classList.remove('hidden');
+            tabRankingBtn.className = 'px-2 py-0.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1 bg-zinc-800 text-zinc-100 shadow-sm';
+            tabHomeBtn.className = 'px-2 py-0.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-200 transition-all flex items-center gap-1';
+            renderRankingView();
+          }
+        }
+
+        tabHomeBtn.addEventListener('click', function () { switchView('home'); });
+        navHomeBtn.addEventListener('click', function () { switchView('home'); });
+        backToHomeBtn.addEventListener('click', function () { switchView('home'); });
+        tabRankingBtn.addEventListener('click', function () { switchView('ranking'); });
+
+        // Render Homepage Lists
+        function renderHomeLists() {
+          homeListsContainer.innerHTML = '';
+          const listKeys = Object.keys(appState.lists);
+          homeListCountBadge.textContent = listKeys.length;
+
+          listKeys.forEach(function (key) {
+            const list = appState.lists[key];
+            const items = list.items || [];
+            const isActive = key === appState.activeListId;
+
+            const card = document.createElement('div');
+            card.className = `p-3.5 bg-zinc-900 border rounded-2xl transition duration-150 flex flex-col gap-3 shadow-md ${
+              isActive ? 'border-amber-500/50 bg-gradient-to-br from-zinc-900 to-amber-950/20 shadow-amber-500/5' : 'border-zinc-800/90 hover:border-zinc-700'
+            }`;
+
+            // Top preview thumbnails of top 3 anime
+            let thumbsHtml = '';
+            const topThumbs = items.slice(0, 3);
+            if (topThumbs.length > 0) {
+              thumbsHtml = `
+                <div class="flex items-center -space-x-2 shrink-0">
+                  ${topThumbs.map(function (it, idx) {
+                    return `
+                      <img
+                        src="${escapeHtml(it.coverImage || FALLBACK_PLACEHOLDER)}"
+                        alt=""
+                        referrerpolicy="no-referrer"
+                        onerror="handleCoverError(this)"
+                        class="w-8 h-10 rounded-md object-cover border border-zinc-800 bg-zinc-850 shadow-sm"
+                        title="#${idx + 1}: ${escapeHtml(it.title)}"
+                      />
+                    `;
+                  }).join('')}
+                </div>
+              `;
+            }
+
+            card.innerHTML = `
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-zinc-100 truncate">${escapeHtml(list.name)}</h3>
+                    ${isActive ? '<span class="text-[10px] font-bold px-1.5 py-0.2 bg-amber-500 text-zinc-950 rounded uppercase tracking-wider">Active</span>' : ''}
+                  </div>
+                  <p class="text-xs font-mono text-zinc-400 mt-0.5">${items.length} anime</p>
+                </div>
+                ${thumbsHtml}
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80 gap-2">
+                <button
+                  type="button"
+                  data-list-action="open"
+                  data-list-id="${key}"
+                  class="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-semibold rounded-xl active:scale-95 transition flex items-center justify-center gap-1"
+                >
+                  <span>Open</span> →
+                </button>
+                <button
+                  type="button"
+                  data-list-action="matchup"
+                  data-list-id="${key}"
+                  class="flex-1 py-1.5 bg-gradient-to-r from-amber-500/20 to-amber-600/15 border border-amber-500/40 hover:bg-amber-500 hover:text-zinc-950 text-amber-300 text-xs font-bold rounded-xl active:scale-95 transition flex items-center justify-center gap-1 shadow-sm"
+                  title="Launch Matchup Battle for this list"
+                >
+                  <span>⚔️</span> Matchup
+                </button>
+                <button
+                  type="button"
+                  data-list-action="rename"
+                  data-list-id="${key}"
+                  class="w-8 h-8 rounded-xl bg-zinc-850 hover:bg-zinc-750 text-zinc-300 hover:text-white border border-zinc-700/80 flex items-center justify-center text-xs active:scale-90 transition shrink-0"
+                  title="Rename List"
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  data-list-action="delete"
+                  data-list-id="${key}"
+                  class="w-8 h-8 rounded-xl bg-zinc-850 hover:bg-rose-950/60 text-zinc-400 hover:text-rose-400 border border-zinc-700/80 hover:border-rose-800 flex items-center justify-center text-xs active:scale-90 transition shrink-0"
+                  title="Delete File"
+                >
+                  🗑️
+                </button>
+              </div>
+            `;
+
+            homeListsContainer.appendChild(card);
+          });
+        }
+
+        // Homepage list actions delegation
+        homeListsContainer.addEventListener('click', function (e) {
+          const btn = e.target.closest('button[data-list-action]');
+          if (!btn) return;
+          const action = btn.dataset.listAction;
+          const listId = btn.dataset.listId;
+
+          if (action === 'open') {
+            appState.activeListId = listId;
+            saveToStorage();
+            switchView('ranking');
+          } else if (action === 'matchup') {
+            appState.activeListId = listId;
+            saveToStorage();
+            startMatchupMode();
+          } else if (action === 'rename') {
+            targetListIdForAction = listId;
+            renameListNameInput.value = appState.lists[listId].name;
+            openModal(renameListModal);
+            setTimeout(function () { renameListNameInput.focus(); }, 50);
+          } else if (action === 'delete') {
+            targetListIdForAction = listId;
+            const targetName = appState.lists[listId].name;
+            deleteListModalDesc.textContent = `Are you sure you want to delete "${targetName}"? All ${appState.lists[listId].items.length} anime inside will be permanently removed.`;
+            openModal(deleteListModal);
+          }
+        });
+
+        // Create New List trigger from Home
+        homeCreateListBtn.addEventListener('click', function () {
+          newListNameInput.value = '';
+          openModal(createListModal);
+          setTimeout(function () { newListNameInput.focus(); }, 50);
+        });
+
+        // Confirm Create List
+        confirmCreateListBtn.addEventListener('click', function () {
+          const title = newListNameInput.value.trim() || 'New Ranking';
+          const newId = `list_${Date.now()}`;
+          appState.lists[newId] = {
+            name: title,
+            items: []
+          };
+          appState.activeListId = newId;
+          saveToStorage();
+          closeModal(createListModal);
+          switchView('ranking');
+          showToast(`Created list "${title}"`);
+        });
+
+        // Confirm Rename List
+        confirmRenameListBtn.addEventListener('click', function () {
+          const title = renameListNameInput.value.trim();
+          if (!title) {
+            showToast('List name cannot be empty');
+            return;
+          }
+          if (targetListIdForAction && appState.lists[targetListIdForAction]) {
+            appState.lists[targetListIdForAction].name = title;
+            saveToStorage();
+            closeModal(renameListModal);
+            if (currentView === 'home') renderHomeLists();
+            else renderRankingView();
+            showToast(`Renamed list to "${title}"`);
+          }
+        });
+
+        // Rename button inside ranking view
+        rankingRenameBtn.addEventListener('click', function () {
+          targetListIdForAction = appState.activeListId;
+          renameListNameInput.value = getActiveList().name;
+          openModal(renameListModal);
+          setTimeout(function () { renameListNameInput.focus(); }, 50);
+        });
+
+        // Delete button inside ranking view
+        rankingDeleteBtn.addEventListener('click', function () {
+          targetListIdForAction = appState.activeListId;
+          const targetName = getActiveList().name;
+          deleteListModalDesc.textContent = `Are you sure you want to delete the active list "${targetName}"? All anime inside will be deleted.`;
+          openModal(deleteListModal);
+        });
+
+        // Confirm Delete List
+        confirmDeleteListBtn.addEventListener('click', function () {
+          if (!targetListIdForAction || !appState.lists[targetListIdForAction]) return;
+          const deletedName = appState.lists[targetListIdForAction].name;
+          delete appState.lists[targetListIdForAction];
+
+          const remainingKeys = Object.keys(appState.lists);
+          if (remainingKeys.length === 0) {
+            appState.lists['list_1'] = { name: 'My Ranking', items: [] };
+            appState.activeListId = 'list_1';
+          } else {
+            appState.activeListId = remainingKeys[0];
+          }
+
+          saveToStorage();
+          closeModal(deleteListModal);
+          showToast(`Deleted list "${deletedName}"`);
+          if (currentView === 'home') {
+            renderHomeLists();
+          } else {
+            switchView('home');
+          }
+        });
+
+        // ========================================================
+        // ADVANCED DISCOVERY BATTLE (AniList Batch Queue & Elo Sorter)
+        // ========================================================
+        function calculateElo(ratingA, ratingB, aWon) {
+          const K = 32;
+          const expectedA = 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
+          const expectedB = 1 / (1 + Math.pow(10, (ratingA - ratingB) / 400));
+
+          const actualA = aWon ? 1 : 0;
+          const actualB = aWon ? 0 : 1;
+
+          const newRatingA = Math.round(ratingA + K * (actualA - expectedA));
+          const newRatingB = Math.round(ratingB + K * (actualB - expectedB));
+
+          return { newRatingA, newRatingB };
+        }
+
+        // Batch Fetch: Queries 50 random popular anime from AniList into apiQueue
+        async function fetchBatchToApiQueue() {
+          if (Date.now() < apiRateLimitedUntil) {
+            matchupQueueStatus.textContent = 'Queue: Rate limited (Local mode)';
+            return;
+          }
+          if (isFetchingApiQueue) return;
+          isFetchingApiQueue = true;
+          matchupQueueStatus.textContent = 'Queue: Refilling from AniList...';
+
+          // Randomized page (1-20) and alternate sorts
+          const randomPage = Math.floor(Math.random() * 20) + 1;
+          const sortField = Math.random() > 0.5 ? 'POPULARITY_DESC' : 'SCORE_DESC';
+
+          const query = `
+            query ($page: Int, $perPage: Int) {
+              Page(page: $page, perPage: $perPage) {
+                media(type: ANIME, sort: ${sortField}) {
+                  id
+                  title {
+                    romaji
+                    english
+                  }
+                  coverImage {
+                    large
+                    medium
+                  }
+                  averageScore
+                }
+              }
+            }
+          `;
+
+          try {
+            const res = await fetch('https://graphql.anilist.co', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+              },
+              body: JSON.stringify({
+                query: query,
+                variables: { page: randomPage, perPage: 50 }
+              })
+            });
+
+            if (res.status === 429) {
+              console.warn('AniList 429 Rate Limit - temporarily degrading to local matchups');
+              apiRateLimitedUntil = Date.now() + 60000;
+              matchupQueueStatus.textContent = 'Queue: Rate limited (Local only)';
+              isFetchingApiQueue = false;
+              return;
+            }
+
+            if (!res.ok) {
+              console.warn(`AniList batch fetch returned status ${res.status}`);
+              matchupQueueStatus.textContent = 'Queue: Offline (Local only)';
+              isFetchingApiQueue = false;
+              return;
+            }
+
+            const data = await res.json();
+            const mediaList = data?.data?.Page?.media || [];
+
+            const existingQueueIds = new Set(apiQueue.map(item => item.anilistId));
+            const currentList = getActiveList();
+            const currentListIds = new Set(currentList.items.map(it => it.anilistId).filter(Boolean));
+
+            mediaList.forEach(function (media) {
+              if (existingQueueIds.has(media.id)) return;
+              const displayTitle = media.title?.english || media.title?.romaji || 'Untitled Anime';
+              const coverUrl = media.coverImage?.large || media.coverImage?.medium || FALLBACK_PLACEHOLDER;
+              const score = media.averageScore !== null && media.averageScore !== undefined ? media.averageScore : null;
+
+              apiQueue.push({
+                id: `anilist-disc-${media.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                title: displayTitle,
+                coverImage: coverUrl,
+                averageScore: score,
+                elo: 1200,
+                anilistId: media.id,
+                tags: ['Discovered'],
+                isApiDiscovery: !currentListIds.has(media.id)
+              });
+            });
+
+            // Random shuffle queue
+            for (let i = apiQueue.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              const temp = apiQueue[i];
+              apiQueue[i] = apiQueue[j];
+              apiQueue[j] = temp;
+            }
+
+            matchupQueueStatus.textContent = `Queue: ${apiQueue.length} anime ready`;
+          } catch (err) {
+            console.error('Error fetching batch into queue:', err);
+            matchupQueueStatus.textContent = 'Queue: Offline (Local only)';
+          } finally {
+            isFetchingApiQueue = false;
+          }
+        }
+
+        // Draw next anime from API queue with background refill if < 5
+        function drawNextApiItem() {
+          if (apiQueue.length < 5 && Date.now() >= apiRateLimitedUntil) {
+            fetchBatchToApiQueue();
+          }
+          if (apiQueue.length > 0) {
+            matchupQueueStatus.textContent = `Queue: ${apiQueue.length - 1} anime left`;
+            return apiQueue.pop();
+          }
+          return null;
+        }
+
+        // Start Matchup Mode
+        async function startMatchupMode() {
+          const currentList = getActiveList();
+
+          // Ensure all local items have elo initialized (default 1200)
+          currentList.items.forEach(function (it) {
+            if (typeof it.elo !== 'number' || isNaN(it.elo)) {
+              it.elo = 1200;
+            }
+          });
+
+          matchupRound = 1;
+          sessionDiscoveredCount = 0;
+          matchupDiscoveryCountBadge.textContent = '✨ 0 Added';
+
+          openModal(matchupModal);
+
+          // If queue is empty or low, trigger batch fetch
+          if (apiQueue.length < 15 && Date.now() >= apiRateLimitedUntil) {
+            fetchBatchToApiQueue();
+          }
+
+          loadNextMatchupPair();
+        }
+
+        // Trigger Matchup Mode via banner button, header tabs, and homepage CTA
+        bannerMatchupBtn.addEventListener('click', startMatchupMode);
+        rankingMatchupBtn.addEventListener('click', startMatchupMode);
+        if (navMatchupBtn) navMatchupBtn.addEventListener('click', startMatchupMode);
+        if (homeBannerMatchupBtn) homeBannerMatchupBtn.addEventListener('click', startMatchupMode);
+
+        // Load next battle pair
+        function loadNextMatchupPair() {
+          const currentList = getActiveList();
+          const localItems = currentList.items;
+          const hasApiItems = apiQueue.length > 0;
+          const isRateLimited = Date.now() < apiRateLimitedUntil;
+
+          // Pick scenario:
+          // Scenario A: Local vs API
+          // Scenario B: API vs API (discover 2 new shows)
+          // Scenario C: Local vs Local
+          let scenario = 'local_vs_api';
+
+          if (!hasApiItems || isRateLimited) {
+            scenario = 'local_vs_local';
+          } else if (localItems.length === 0) {
+            scenario = 'api_vs_api';
+          } else if (localItems.length === 1) {
+            scenario = Math.random() < 0.75 ? 'local_vs_api' : 'api_vs_api';
+          } else {
+            const r = Math.random();
+            if (r < 0.55) {
+              scenario = 'local_vs_api';
+            } else if (r < 0.82) {
+              scenario = 'api_vs_api';
+            } else {
+              scenario = 'local_vs_local';
+            }
+          }
+
+          if (scenario === 'local_vs_api') {
+            const localItem = localItems[Math.floor(Math.random() * localItems.length)];
+            const apiItem = drawNextApiItem();
+            if (!apiItem) {
+              loadLocalVsLocalPair();
+              return;
+            }
+            if (Math.random() < 0.5) {
+              matchupAnimeA = localItem;
+              matchupAnimeB = apiItem;
+            } else {
+              matchupAnimeA = apiItem;
+              matchupAnimeB = localItem;
+            }
+          } else if (scenario === 'api_vs_api') {
+            const apiItemA = drawNextApiItem();
+            const apiItemB = drawNextApiItem();
+            if (!apiItemA || !apiItemB) {
+              loadLocalVsLocalPair();
+              return;
+            }
+            matchupAnimeA = apiItemA;
+            matchupAnimeB = apiItemB;
+          } else {
+            loadLocalVsLocalPair();
+            return;
+          }
+
+          renderMatchupPairUI();
+        }
+
+        function loadLocalVsLocalPair() {
+          const currentList = getActiveList();
+          const items = currentList.items;
+
+          if (items.length < 2) {
+            // Need at least 2 anime or API items
+            if (apiQueue.length > 0) {
+              matchupAnimeA = drawNextApiItem();
+              matchupAnimeB = drawNextApiItem() || items[0];
+              renderMatchupPairUI();
+              return;
+            }
+            showToast('Add more anime or wait for AniList queue to refill!');
+            closeModal(matchupModal);
+            return;
+          }
+
+          const idxA = Math.floor(Math.random() * items.length);
+          let idxB = Math.floor(Math.random() * (items.length - 1));
+          if (idxB >= idxA) idxB++;
+
+          matchupAnimeA = items[idxA];
+          matchupAnimeB = items[idxB];
+          renderMatchupPairUI();
+        }
+
+        function renderMatchupPairUI() {
+          if (!matchupAnimeA || !matchupAnimeB) return;
+
+          matchupRoundBadge.textContent = `Round #${matchupRound}`;
+
+          const isLocalA = isAnimeInLocalList(matchupAnimeA);
+          const isLocalB = isAnimeInLocalList(matchupAnimeB);
+
+          // Card A Data & Badging
+          matchupCoverA.src = matchupAnimeA.coverImage || FALLBACK_PLACEHOLDER;
+          matchupTitleA.textContent = matchupAnimeA.title;
+          matchupTitleA.title = matchupAnimeA.title;
+          matchupScoreA.textContent =
+            matchupAnimeA.averageScore !== null && matchupAnimeA.averageScore !== undefined && matchupAnimeA.averageScore !== 'N/A'
+              ? `Score: ${matchupAnimeA.averageScore}%`
+              : 'Score: N/A';
+          matchupEloA.textContent = `Elo: ${Math.round(matchupAnimeA.elo || 1200)}`;
+
+          if (isLocalA) {
+            matchupSourceA.className = 'text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700';
+            matchupSourceA.textContent = '📁 In Your List';
+            matchupVoteBtnA.textContent = 'Vote This ▲';
+          } else {
+            matchupSourceA.className = 'text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            matchupSourceA.textContent = '✨ AniList Discovery';
+            matchupVoteBtnA.textContent = 'Vote & Add to List ▲';
+          }
+
+          // Card B Data & Badging
+          matchupCoverB.src = matchupAnimeB.coverImage || FALLBACK_PLACEHOLDER;
+          matchupTitleB.textContent = matchupAnimeB.title;
+          matchupTitleB.title = matchupAnimeB.title;
+          matchupScoreB.textContent =
+            matchupAnimeB.averageScore !== null && matchupAnimeB.averageScore !== undefined && matchupAnimeB.averageScore !== 'N/A'
+              ? `Score: ${matchupAnimeB.averageScore}%`
+              : 'Score: N/A';
+          matchupEloB.textContent = `Elo: ${Math.round(matchupAnimeB.elo || 1200)}`;
+
+          if (isLocalB) {
+            matchupSourceB.className = 'text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700';
+            matchupSourceB.textContent = '📁 In Your List';
+            matchupVoteBtnB.textContent = 'Vote This ▲';
+          } else {
+            matchupSourceB.className = 'text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            matchupSourceB.textContent = '✨ AniList Discovery';
+            matchupVoteBtnB.textContent = 'Vote & Add to List ▲';
+          }
+        }
+
+        // Vote resolution with "Add on Win" mechanic
+        function handleMatchupVote(winnerIsA) {
+          if (!matchupAnimeA || !matchupAnimeB) return;
+
+          const currentList = getActiveList();
+          const currentEloA = matchupAnimeA.elo || 1200;
+          const currentEloB = matchupAnimeB.elo || 1200;
+          const { newRatingA, newRatingB } = calculateElo(currentEloA, currentEloB, winnerIsA);
+
+          matchupAnimeA.elo = newRatingA;
+          matchupAnimeB.elo = newRatingB;
+
+          const isLocalA = isAnimeInLocalList(matchupAnimeA);
+          const isLocalB = isAnimeInLocalList(matchupAnimeB);
+
+          if (winnerIsA) {
+            // Anime A Won!
+            if (!isLocalA) {
+              // "Add on Win" Mechanic: Push new anime into active list with starting 1200 + Elo gains
+              const addedAnime = {
+                id: matchupAnimeA.id || `disc-${Date.now()}`,
+                title: matchupAnimeA.title,
+                coverImage: matchupAnimeA.coverImage || FALLBACK_PLACEHOLDER,
+                averageScore: matchupAnimeA.averageScore !== undefined ? matchupAnimeA.averageScore : 'N/A',
+                elo: newRatingA,
+                anilistId: matchupAnimeA.anilistId || undefined,
+                tags: ['Discovered']
+              };
+              currentList.items.push(addedAnime);
+              sessionDiscoveredCount++;
+              matchupDiscoveryCountBadge.textContent = `✨ ${sessionDiscoveredCount} Added`;
+              showToast(`✨ Discovered & Added "${matchupAnimeA.title}"! (Elo: ${newRatingA})`);
+            } else {
+              // Update local anime A's Elo
+              const localA = currentList.items.find(it => (it.anilistId && it.anilistId === matchupAnimeA.anilistId) || it.id === matchupAnimeA.id);
+              if (localA) localA.elo = newRatingA;
+            }
+
+            // If Anime B was already local, update its reduced Elo
+            if (isLocalB) {
+              const localB = currentList.items.find(it => (it.anilistId && it.anilistId === matchupAnimeB.anilistId) || it.id === matchupAnimeB.id);
+              if (localB) localB.elo = newRatingB;
+            }
+          } else {
+            // Anime B Won!
+            if (!isLocalB) {
+              // "Add on Win" Mechanic: Push new anime into active list
+              const addedAnime = {
+                id: matchupAnimeB.id || `disc-${Date.now()}`,
+                title: matchupAnimeB.title,
+                coverImage: matchupAnimeB.coverImage || FALLBACK_PLACEHOLDER,
+                averageScore: matchupAnimeB.averageScore !== undefined ? matchupAnimeB.averageScore : 'N/A',
+                elo: newRatingB,
+                anilistId: matchupAnimeB.anilistId || undefined,
+                tags: ['Discovered']
+              };
+              currentList.items.push(addedAnime);
+              sessionDiscoveredCount++;
+              matchupDiscoveryCountBadge.textContent = `✨ ${sessionDiscoveredCount} Added`;
+              showToast(`✨ Discovered & Added "${matchupAnimeB.title}"! (Elo: ${newRatingB})`);
+            } else {
+              // Update local anime B's Elo
+              const localB = currentList.items.find(it => (it.anilistId && it.anilistId === matchupAnimeB.anilistId) || it.id === matchupAnimeB.id);
+              if (localB) localB.elo = newRatingB;
+            }
+
+            // If Anime A was already local, update its reduced Elo
+            if (isLocalA) {
+              const localA = currentList.items.find(it => (it.anilistId && it.anilistId === matchupAnimeA.anilistId) || it.id === matchupAnimeA.id);
+              if (localA) localA.elo = newRatingA;
+            }
+          }
+
+          saveToStorage();
+          matchupRound++;
+          loadNextMatchupPair();
+        }
+
+        // Vote Card A
+        matchupCardA.addEventListener('click', function () {
+          handleMatchupVote(true);
+        });
+
+        // Vote Card B
+        matchupCardB.addEventListener('click', function () {
+          handleMatchupVote(false);
+        });
+
+        // Skip Matchup (draw / next pair)
+        matchupSkipBtn.addEventListener('click', function () {
+          matchupRound++;
+          loadNextMatchupPair();
+        });
+
+        // Exit & Sort: close modal, sort active list descending by Elo scores, save to localStorage, re-render
+        matchupDoneBtn.addEventListener('click', function () {
+          const currentList = getActiveList();
+          currentList.items.sort(function (a, b) {
+            return (b.elo || 1200) - (a.elo || 1200);
+          });
+          saveToStorage();
+          closeModal(matchupModal);
+          switchView('ranking');
+          showToast(`Ranking updated! ${sessionDiscoveredCount} new anime added.`);
+        });
+
+        // Cancel Matchup without sorting
+        matchupCancelBtn.addEventListener('click', function () {
+          closeModal(matchupModal);
+          if (currentView === 'ranking') {
+            renderRankingView();
+          } else {
+            renderHomeLists();
+          }
+        });
+
+        if (matchupHeaderCloseBtn) {
+          matchupHeaderCloseBtn.addEventListener('click', function () {
+            matchupCancelBtn.click();
+          });
+        }
+
+        // ========================================================
+        // ADD ANIME MODAL (Prompt before adding to choose position)
+        // ========================================================
+        function promptAddAnime(item) {
+          pendingItemToAdd = item;
+          const currentList = getActiveList();
+          const count = currentList.items.length;
+          const nextBottomRank = count + 1;
+
+          addAnimePreviewCover.src = item.coverImage || FALLBACK_PLACEHOLDER;
+          addAnimePreviewTitle.textContent = item.title;
+          addAnimePreviewScore.textContent =
+            item.averageScore !== null && item.averageScore !== undefined && item.averageScore !== 'N/A'
+              ? `Score: ${item.averageScore}%`
+              : 'Score: N/A';
+          addAnimeCurrentCountText.textContent = `Current list total: ${count} anime`;
+
+          addPlacementBottomLabel.textContent = `Rank #${nextBottomRank}`;
+          addAnimeRangeHint.textContent = `1 to ${nextBottomRank}`;
+
+          // Default selection is ALWAYS Custom
+          setAddPlacementMode('custom');
+          addAnimeCustomRankInput.value = '1';
+          addAnimeCustomRankInput.max = nextBottomRank + 10;
+
+          openModal(addAnimeModal);
+          setTimeout(function () {
+            addAnimeCustomRankInput.focus();
+            addAnimeCustomRankInput.select();
+          }, 80);
+        }
+
+        function setAddPlacementMode(mode) {
+          selectedAddPlacementMode = mode;
+          [addPlacementTopBtn, addPlacementBottomBtn, addPlacementCustomBtn].forEach(function (btn) {
+            btn.className = 'add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-300 border-zinc-800 bg-zinc-850 hover:bg-zinc-800 active:scale-95 transition flex flex-col items-center';
+          });
+
+          if (mode === 'top') {
+            addPlacementTopBtn.className = 'add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-950 border-amber-500 bg-amber-500 shadow-md active:scale-95 transition flex flex-col items-center';
+            addAnimeCustomInputWrapper.classList.add('opacity-40');
+          } else if (mode === 'bottom') {
+            addPlacementBottomBtn.className = 'add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-950 border-amber-500 bg-amber-500 shadow-md active:scale-95 transition flex flex-col items-center';
+            addAnimeCustomInputWrapper.classList.add('opacity-40');
+          } else {
+            addPlacementCustomBtn.className = 'add-placement-btn py-2 px-2 rounded-xl border text-xs font-semibold text-zinc-950 border-amber-500 bg-amber-500 shadow-md active:scale-95 transition flex flex-col items-center';
+            addAnimeCustomInputWrapper.classList.remove('opacity-40');
+          }
+        }
+
+        addPlacementTopBtn.addEventListener('click', function () { setAddPlacementMode('top'); });
+        addPlacementBottomBtn.addEventListener('click', function () { setAddPlacementMode('bottom'); });
+        addPlacementCustomBtn.addEventListener('click', function () {
+          setAddPlacementMode('custom');
+          addAnimeCustomRankInput.focus();
+        });
+
+        // Confirm Add Anime Button logic with auto-clamp
+        confirmAddAnimeBtn.addEventListener('click', function () {
+          if (!pendingItemToAdd) return;
+          const currentList = getActiveList();
+          const count = currentList.items.length;
+          let targetRank = count + 1; // 1-indexed
+
+          if (selectedAddPlacementMode === 'top') {
+            targetRank = 1;
+          } else if (selectedAddPlacementMode === 'bottom') {
+            targetRank = count + 1;
+          } else {
+            // Custom rank input:
+            const raw = parseInt(addAnimeCustomRankInput.value, 10);
+            if (isNaN(raw) || raw <= 1) {
+              targetRank = 1;
+            } else if (raw > count + 1) {
+              // Auto-clamp to lowest rank
+              targetRank = count + 1;
+            } else {
+              targetRank = raw;
+            }
+          }
+
+          if (typeof pendingItemToAdd.elo !== 'number') {
+            pendingItemToAdd.elo = 1200;
+          }
+
+          // Insert at index = targetRank - 1
+          const insertIdx = targetRank - 1;
+          currentList.items.splice(insertIdx, 0, pendingItemToAdd);
+          saveToStorage();
+          closeModal(addAnimeModal);
+          renderRankingView();
+          showToast(`Added "${pendingItemToAdd.title}" at Rank #${targetRank}!`);
+          pendingItemToAdd = null;
+        });
+
+        // ========================================================
+        // RENDER RANKING VIEW & THREE-DOT CARD MENU
+        // ========================================================
+        function renderRankingView() {
+          const currentList = getActiveList();
+          const items = currentList.items;
+
+          activeRankingTitle.textContent = currentList.name;
+          activeRankingCount.textContent = `${items.length} anime`;
+
+          rankedListEl.innerHTML = '';
+
+          if (items.length === 0) {
+            emptyStateEl.classList.remove('hidden');
+            emptyStateEl.classList.add('flex');
+            return;
+          }
+
+          emptyStateEl.classList.add('hidden');
+          emptyStateEl.classList.remove('flex');
+
+          items.forEach(function (item, index) {
+            const card = document.createElement('div');
+
+            // Top 3 Rank Highlighting
+            let rankTextClass = 'text-zinc-400 font-bold';
+            let cardBorderAndBgClass = 'border-zinc-800/90 bg-zinc-900 shadow-sm';
+
+            if (index === 0) {
+              rankTextClass = 'text-yellow-400 font-black text-base';
+              cardBorderAndBgClass = 'border-yellow-500/50 bg-gradient-to-r from-yellow-500/10 via-zinc-900 to-zinc-900 shadow-[0_0_16px_-2px_rgba(234,179,8,0.25)] animate-goldGlow';
+            } else if (index === 1) {
+              rankTextClass = 'text-slate-200 font-black text-base';
+              cardBorderAndBgClass = 'border-slate-400/50 bg-gradient-to-r from-slate-400/10 via-zinc-900 to-zinc-900 shadow-[0_0_14px_-3px_rgba(148,163,184,0.2)]';
+            } else if (index === 2) {
+              rankTextClass = 'text-amber-500 font-black text-base';
+              cardBorderAndBgClass = 'border-amber-700/60 bg-gradient-to-r from-amber-700/10 via-zinc-900 to-zinc-900 shadow-[0_0_14px_-3px_rgba(180,83,9,0.2)]';
+            }
+
+            card.className = `card-item flex flex-col p-2.5 rounded-xl border ${cardBorderAndBgClass}`;
+
+            const scoreDisplay =
+              item.averageScore !== null && item.averageScore !== undefined && item.averageScore !== 'N/A'
+                ? `<span class="text-xs font-mono font-bold text-emerald-400 tabular-nums">${escapeHtml(item.averageScore)}%</span>`
+                : `<span class="text-xs font-mono text-zinc-500">N/A</span>`;
+
+            const eloDisplay =
+              item.elo !== undefined && item.elo !== null
+                ? `<span class="text-[11px] font-mono text-amber-400/90 font-semibold tabular-nums">Elo: ${Math.round(item.elo)}</span>`
+                : `<span class="text-[11px] font-mono text-zinc-500">Elo: 1200</span>`;
+
+            const isFirst = index === 0;
+            const isLast = index === items.length - 1;
+
+            // Tags badges
+            const tagsList = Array.isArray(item.tags) ? item.tags : [];
+            let tagsHtml = '';
+
+            tagsList.forEach(function (tag) {
+              tagsHtml += `
+                <button
+                  type="button"
+                  data-action="open-tags"
+                  data-index="${index}"
+                  class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-amber-500/60 hover:text-white active:scale-95 transition-colors select-none"
+                  title="Click to manage tags"
+                >
+                  <span>${escapeHtml(tag)}</span>
+                </button>
+              `;
+            });
+
+            tagsHtml += `
+              <button
+                type="button"
+                data-action="open-tags"
+                data-index="${index}"
+                class="inline-flex items-center justify-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-800/90 hover:bg-amber-500 hover:text-zinc-950 text-amber-400 border border-zinc-700 active:scale-95 transition"
+                title="Add custom tag"
+              >
+                + tag
+              </button>
+            `;
+
+            card.innerHTML = `
+              <div class="flex items-center gap-2.5">
+                <!-- Rank Number -->
+                <div class="font-mono ${rankTextClass} w-7 shrink-0 text-center select-none tabular-nums">
+                  #${index + 1}
+                </div>
+
+                <img
+                  src="${escapeHtml(item.coverImage || FALLBACK_PLACEHOLDER)}"
+                  alt="${escapeHtml(item.title)}"
+                  referrerpolicy="no-referrer"
+                  loading="lazy"
+                  onerror="handleCoverError(this)"
+                  class="w-12 h-16 rounded-lg object-cover bg-zinc-800 shrink-0 border border-zinc-800 shadow-sm"
+                />
+
+                <div class="flex-1 min-w-0 pr-1">
+                  <p class="font-medium text-sm text-zinc-100 truncate leading-snug" title="${escapeHtml(item.title)}">
+                    ${escapeHtml(item.title)}
+                  </p>
+                  <div class="flex items-center gap-1.5 mt-0.5 text-xs text-zinc-400">
+                    <span class="text-[11px] text-zinc-500 uppercase tracking-wide">Score</span>
+                    <span>·</span>
+                    ${scoreDisplay}
+                    <span>·</span>
+                    ${eloDisplay}
+                  </div>
+                </div>
+
+                <!-- Controls: Large Up & Down, and Three-Dot Option Menu -->
+                <div class="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    data-action="up"
+                    data-index="${index}"
+                    ${isFirst ? 'disabled' : ''}
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-800/80 hover:bg-zinc-750 text-zinc-200 hover:text-white border border-zinc-700/80 active:scale-90 disabled:opacity-20 disabled:pointer-events-none transition text-sm font-black shadow-sm"
+                    title="Move up 1 rank"
+                    aria-label="Move up"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    data-action="down"
+                    data-index="${index}"
+                    ${isLast ? 'disabled' : ''}
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-800/80 hover:bg-zinc-750 text-zinc-200 hover:text-white border border-zinc-700/80 active:scale-90 disabled:opacity-20 disabled:pointer-events-none transition text-sm font-black shadow-sm"
+                    title="Move down 1 rank"
+                    aria-label="Move down"
+                  >
+                    ▼
+                  </button>
+
+                  <!-- Three-Dot Button (⋮) -->
+                  <button
+                    type="button"
+                    data-action="card-menu"
+                    data-index="${index}"
+                    class="w-9 h-10 flex items-center justify-center rounded-xl text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 active:scale-90 transition text-base font-black"
+                    title="Anime options (Change rank, tags, delete)"
+                    aria-label="Anime options"
+                  >
+                    ⋮
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tags Container -->
+              <div class="flex flex-wrap items-center gap-1.5 mt-2 pl-9">
+                ${tagsHtml}
+              </div>
+            `;
+
+            rankedListEl.appendChild(card);
+          });
+        }
+
+        // Delegated Ranked List Clicks
+        rankedListEl.addEventListener('click', function (e) {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+
+          const action = btn.dataset.action;
+          const index = parseInt(btn.dataset.index, 10);
+          const currentList = getActiveList();
+          const items = currentList.items;
+          if (isNaN(index) || !items[index]) return;
+
+          if (action === 'up' && index > 0) {
+            const temp = items[index];
+            items[index] = items[index - 1];
+            items[index - 1] = temp;
+            saveToStorage();
+            renderRankingView();
+          } else if (action === 'down' && index < items.length - 1) {
+            const temp = items[index];
+            items[index] = items[index + 1];
+            items[index + 1] = temp;
+            saveToStorage();
+            renderRankingView();
+          } else if (action === 'open-tags') {
+            activeTagModalIndex = index;
+            openTagManager(index);
+          } else if (action === 'card-menu') {
+            openCardMenu(index);
+          }
+        });
+
+        // ========================================================
+        // THREE-DOT CARD OPTIONS MODAL HANDLERS
+        // ========================================================
+        function openCardMenu(index) {
+          activeCardMenuIndex = index;
+          const currentList = getActiveList();
+          const item = currentList.items[index];
+          if (!item) return;
+
+          cardMenuAnimeTitle.textContent = item.title;
+          cardMenuCurrentRankText.textContent = `Current Rank: #${index + 1} of ${currentList.items.length}`;
+          cardMenuCustomRankInput.value = index + 1;
+          openModal(cardMenuModal);
+          setTimeout(function () {
+            cardMenuCustomRankInput.focus();
+            cardMenuCustomRankInput.select();
+          }, 60);
+        }
+
+        // Move to Top from card menu
+        cardMenuMoveTopBtn.addEventListener('click', function () {
+          if (activeCardMenuIndex === null) return;
+          moveExistingAnimeToRank(activeCardMenuIndex, 1);
+          closeModal(cardMenuModal);
+        });
+
+        // Move to Bottom from card menu
+        cardMenuMoveBottomBtn.addEventListener('click', function () {
+          if (activeCardMenuIndex === null) return;
+          const currentList = getActiveList();
+          moveExistingAnimeToRank(activeCardMenuIndex, currentList.items.length);
+          closeModal(cardMenuModal);
+        });
+
+        // Custom number move form submit
+        cardMenuCustomMoveForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          if (activeCardMenuIndex === null) return;
+          const raw = parseInt(cardMenuCustomRankInput.value, 10);
+          const currentList = getActiveList();
+          const total = currentList.items.length;
+
+          let targetRank = 1;
+          if (isNaN(raw) || raw <= 1) {
+            targetRank = 1;
+          } else if (raw > total) {
+            targetRank = total;
+          } else {
+            targetRank = raw;
+          }
+
+          moveExistingAnimeToRank(activeCardMenuIndex, targetRank);
+          closeModal(cardMenuModal);
+        });
+
+        function moveExistingAnimeToRank(fromIndex, targetRank1Indexed) {
+          const currentList = getActiveList();
+          const total = currentList.items.length;
+          const targetIndex = Math.max(0, Math.min(targetRank1Indexed - 1, total - 1));
+
+          if (fromIndex !== targetIndex) {
+            const [item] = currentList.items.splice(fromIndex, 1);
+            currentList.items.splice(targetIndex, 0, item);
+            saveToStorage();
+            renderRankingView();
+            showToast(`Moved "${item.title}" to #${targetIndex + 1}!`);
+          }
+        }
+
+        // Manage tags from card menu
+        cardMenuManageTagsBtn.addEventListener('click', function () {
+          if (activeCardMenuIndex === null) return;
+          const idx = activeCardMenuIndex;
+          closeModal(cardMenuModal);
+          activeTagModalIndex = idx;
+          openTagManager(idx);
+        });
+
+        // Delete anime from card menu
+        cardMenuDeleteAnimeBtn.addEventListener('click', function () {
+          if (activeCardMenuIndex === null) return;
+          const currentList = getActiveList();
+          const removed = currentList.items.splice(activeCardMenuIndex, 1);
+          saveToStorage();
+          closeModal(cardMenuModal);
+          renderRankingView();
+          if (removed.length > 0) {
+            showToast(`Removed "${removed[0].title}"`);
+          }
+        });
+
+        // ========================================================
+        // TAG MANAGER MODAL
+        // ========================================================
+        function openTagManager(index) {
+          const currentList = getActiveList();
+          const item = currentList.items[index];
+          if (!item) return;
+
+          tagModalAnimeTitle.textContent = item.title;
+          tagModalCustomInput.value = '';
+          renderTagModalBadges(item);
+          renderTagModalPresets(item);
+          openModal(tagModal);
+          setTimeout(function () { tagModalCustomInput.focus(); }, 50);
+        }
+
+        function renderTagModalBadges(item) {
+          tagModalCurrentTags.innerHTML = '';
+          if (!item.tags || item.tags.length === 0) {
+            tagModalCurrentTags.innerHTML = '<span class="text-xs text-zinc-500 italic">No tags assigned yet</span>';
+            return;
+          }
+
+          item.tags.forEach(function (tag, tagIdx) {
+            const badge = document.createElement('span');
+            badge.className = 'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-200 border border-zinc-700';
+            badge.innerHTML = `
+              <span>${escapeHtml(tag)}</span>
+              <button type="button" class="text-zinc-400 hover:text-rose-400 text-xs font-bold" title="Delete tag">✕</button>
+            `;
+            badge.querySelector('button').addEventListener('click', function () {
+              item.tags.splice(tagIdx, 1);
+              saveToStorage();
+              renderTagModalBadges(item);
+              renderTagModalPresets(item);
+              renderRankingView();
+            });
+            tagModalCurrentTags.appendChild(badge);
+          });
+        }
+
+        function renderTagModalPresets(item) {
+          tagModalPresets.innerHTML = '';
+          const currentTags = Array.isArray(item.tags) ? item.tags : [];
+
+          POPULAR_TAGS.forEach(function (tag) {
+            const isAssigned = currentTags.includes(tag);
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = `text-[11px] font-medium px-2.5 py-1 rounded-full border transition active:scale-95 ${
+              isAssigned
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 cursor-default'
+                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-750 hover:text-white'
+            }`;
+            chip.textContent = isAssigned ? `✓ ${tag}` : `+ ${tag}`;
+
+            if (!isAssigned) {
+              chip.addEventListener('click', function () {
+                if (!Array.isArray(item.tags)) item.tags = [];
+                item.tags.push(tag);
+                saveToStorage();
+                renderTagModalBadges(item);
+                renderTagModalPresets(item);
+                renderRankingView();
+                showToast(`Added tag "${tag}"`);
+              });
+            }
+            tagModalPresets.appendChild(chip);
+          });
+        }
+
+        tagModalCustomForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          if (activeTagModalIndex === null) return;
+          const currentList = getActiveList();
+          const item = currentList.items[activeTagModalIndex];
+          if (!item) return;
+
+          const text = tagModalCustomInput.value.trim();
+          if (!text) return;
+
+          if (!Array.isArray(item.tags)) item.tags = [];
+          if (!item.tags.includes(text)) {
+            item.tags.push(text);
+            saveToStorage();
+            renderTagModalBadges(item);
+            renderTagModalPresets(item);
+            renderRankingView();
+            showToast(`Added tag "${text}"`);
+          } else {
+            showToast(`Tag "${text}" already exists`);
+          }
+          tagModalCustomInput.value = '';
+        });
+
+        // ========================================================
+        // ANILIST GRAPHQL SEARCH API
+        // ========================================================
+        async function fetchAniList(queryText) {
+          const trimmed = queryText.trim();
+          if (!trimmed) {
+            searchResultsEl.innerHTML = '';
+            searchResultsEl.classList.add('hidden');
+            return;
+          }
+
+          if (activeAbortController) activeAbortController.abort();
+          activeAbortController = new AbortController();
+
+          searchResultsEl.innerHTML = `
+            <div class="px-4 py-3 text-xs text-zinc-400 flex items-center gap-2">
+              <svg class="animate-spin h-3.5 w-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              Searching AniList...
+            </div>
+          `;
+          searchResultsEl.classList.remove('hidden');
+
+          const query = `
+            query ($search: String) {
+              Page(page: 1, perPage: 8) {
+                media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
+                  id
+                  title { romaji english }
+                  coverImage { large medium }
+                  averageScore
+                }
+              }
+            }
+          `;
+
+          try {
+            const res = await fetch('https://graphql.anilist.co', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+              body: JSON.stringify({ query: query, variables: { search: trimmed } }),
+              signal: activeAbortController.signal
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const mediaList = data?.data?.Page?.media || [];
+
+            if (mediaList.length === 0) {
+              searchResultsEl.innerHTML = `
+                <div class="px-4 py-3 text-xs text-zinc-400 text-center">
+                  No anime found for "${escapeHtml(trimmed)}"
+                </div>
+              `;
+              return;
+            }
+
+            searchResultsEl.innerHTML = '';
+            mediaList.forEach(function (media) {
+              const displayTitle = media.title?.english || media.title?.romaji || 'Untitled Anime';
+              const coverUrl = media.coverImage?.large || media.coverImage?.medium || FALLBACK_PLACEHOLDER;
+              const score = media.averageScore !== null && media.averageScore !== undefined ? media.averageScore : null;
+
+              const row = document.createElement('div');
+              row.className = 'w-full px-3 py-2 flex items-center justify-between gap-3 hover:bg-zinc-800/80 transition text-zinc-100 group cursor-pointer';
+
+              const scoreHtml = score !== null
+                ? `<span class="text-xs font-mono font-bold text-emerald-400 tabular-nums">${score}%</span>`
+                : `<span class="text-xs font-mono text-zinc-500">N/A</span>`;
+
+              row.innerHTML = `
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  <img
+                    src="${escapeHtml(coverUrl)}"
+                    alt=""
+                    referrerpolicy="no-referrer"
+                    onerror="handleCoverError(this)"
+                    class="w-9 h-12 rounded object-cover bg-zinc-800 shrink-0 border border-zinc-700/60"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-semibold text-zinc-200 truncate group-hover:text-white">${escapeHtml(displayTitle)}</p>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">Score: ${scoreHtml}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <span class="px-2 py-1 bg-amber-500 group-hover:bg-amber-400 text-zinc-950 font-bold text-xs rounded-lg shadow transition">
+                    + Add
+                  </span>
+                </div>
+              `;
+
+              row.addEventListener('click', function () {
+                promptAddAnime({
+                  id: `anilist-${media.id}-${Date.now()}`,
+                  title: displayTitle,
+                  coverImage: coverUrl,
+                  averageScore: score,
+                  elo: 1200,
+                  anilistId: media.id,
+                  tags: []
+                });
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                searchResultsEl.innerHTML = '';
+                searchResultsEl.classList.add('hidden');
+              });
+
+              searchResultsEl.appendChild(row);
+            });
+          } catch (err) {
+            if (err.name === 'AbortError') return;
+            console.error('AniList API error:', err);
+            searchResultsEl.innerHTML = `
+              <div class="px-4 py-3 text-xs text-rose-400 text-center">
+                Search failed. Please try manual add.
+              </div>
+            `;
+          }
+        }
+
+        // Search Input (400ms debounce)
+        searchInput.addEventListener('input', function (e) {
+          const val = e.target.value;
+          if (val.trim()) clearSearchBtn.classList.remove('hidden');
+          else clearSearchBtn.classList.add('hidden');
+
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(function () {
+            fetchAniList(val);
+          }, 400);
+        });
+
+        clearSearchBtn.addEventListener('click', function () {
+          searchInput.value = '';
+          clearSearchBtn.classList.add('hidden');
+          searchResultsEl.innerHTML = '';
+          searchResultsEl.classList.add('hidden');
+          if (activeAbortController) activeAbortController.abort();
+          searchInput.focus();
+        });
+
+        document.addEventListener('click', function (e) {
+          if (!searchResultsEl.contains(e.target) && e.target !== searchInput) {
+            searchResultsEl.classList.add('hidden');
+          }
+        });
+
+        // Manual Add Form
+        manualAddForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const title = manualInput.value.trim();
+          if (!title) {
+            manualInput.focus();
+            return;
+          }
+
+          promptAddAnime({
+            id: `manual-${Date.now()}`,
+            title: title,
+            coverImage: FALLBACK_PLACEHOLDER,
+            averageScore: 'N/A',
+            elo: 1200,
+            tags: []
+          });
+
+          manualInput.value = '';
+        });
+
+        // ========================================================
+        // EXPORT & SMART IMPORT
+        // ========================================================
+        exportBtn.addEventListener('click', function () {
+          const currentList = getActiveList();
+          if (currentList.items.length === 0) {
+            showToast(`List "${currentList.name}" is empty`);
+            return;
+          }
+          try {
+            const jsonString = JSON.stringify(currentList.items, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const sanitized = (currentList.name || 'my-ranking')
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '') || 'my-ranking';
+
+            a.href = url;
+            a.download = `${sanitized}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Exported "${a.download}"`);
+          } catch (err) {
+            console.error('Export error:', err);
+            showToast('Export failed');
+          }
+        });
+
+        importBtn.addEventListener('click', function () {
+          importInput.value = '';
+          importInput.click();
+        });
+
+        if (homeImportBtn) {
+          homeImportBtn.addEventListener('click', function () {
+            importBtn.click();
+          });
+        }
+
+        importInput.addEventListener('change', function (e) {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          const fileName = file.name || 'Imported_Rank.json';
+          let derivedName = fileName
+            .replace(/\.json$/i, '')
+            .replace(/[_-]+/g, ' ')
+            .trim();
+          if (!derivedName) derivedName = 'Imported Rank';
+
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            try {
+              const content = event.target.result;
+              const parsed = JSON.parse(content);
+              let itemsToImport = [];
+
+              if (Array.isArray(parsed)) {
+                itemsToImport = parsed;
+              } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
+                itemsToImport = parsed.items;
+                if (parsed.name && typeof parsed.name === 'string') {
+                  derivedName = parsed.name.trim() || derivedName;
+                }
+              } else {
+                throw new Error('Imported JSON is not an array.');
+              }
+
+              const validated = itemsToImport.map(function (it, idx) {
+                return {
+                  id: it.id || `imported-${Date.now()}-${idx}`,
+                  title: String(it.title || 'Untitled Anime').trim(),
+                  coverImage: typeof it.coverImage === 'string' && it.coverImage ? it.coverImage : FALLBACK_PLACEHOLDER,
+                  averageScore: it.averageScore !== undefined ? it.averageScore : 'N/A',
+                  elo: typeof it.elo === 'number' && !isNaN(it.elo) ? it.elo : 1200,
+                  tags: Array.isArray(it.tags) ? it.tags : [],
+                  anilistId: it.anilistId || undefined
+                };
+              });
+
+              const newListId = `list_${Date.now()}`;
+              appState.lists[newListId] = {
+                name: derivedName,
+                items: validated
+              };
+              appState.activeListId = newListId;
+
+              saveToStorage();
+              switchView('ranking');
+              showToast(`Imported as new list "${derivedName}" (${validated.length} anime)!`);
+            } catch (err) {
+              console.error('Import parse error:', err);
+              showToast('Invalid JSON file format');
+            }
+          };
+
+          reader.onerror = function () {
+            showToast('Failed to read file');
+          };
+
+          reader.readAsText(file);
+        });
+
+        // Initialize application
+        loadFromStorage();
+        switchView('home');
+      })();
+    </script>
+  </body>
+</html>
